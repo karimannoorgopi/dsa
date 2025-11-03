@@ -1,0 +1,293 @@
+/*------------- Experiment 11: Browser Navigation (Doubly Linked List) -------------*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+struct Node {
+    char url[100];
+    struct Node* prev;
+    struct Node* next;
+};
+struct Node* current = NULL;
+void visitNewPage(char url[]) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    strcpy(newNode->url, url);
+    newNode->prev = current;
+    newNode->next = NULL;
+    if (current != NULL) current->next = newNode;
+    current = newNode;
+}
+void goBack() { if (current && current->prev) current = current->prev; }
+void goForward() { if (current && current->next) current = current->next; }
+void displayCurrentPage() { if (current) printf("%s\n", current->url); else printf("No page visited yet.\n"); }
+int main() {
+    int choice; char url[100];
+    do {
+        printf("\n1. Visit new page\n2. Back\n3. Forward\n4. Show Current\n5. Exit\nEnter choice: ");
+        scanf("%d", &choice);
+        switch(choice) {
+            case 1: printf("Enter URL: "); scanf("%s", url); visitNewPage(url); break;
+            case 2: goBack(); break;
+            case 3: goForward(); break;
+            case 4: displayCurrentPage(); break;
+            case 5: break;
+        }
+    } while(choice!=5);
+    return 0;
+}
+
+/*------------- Experiment 12: Garbage Collection / Memory Management (Simulation) -------------*/
+#include <stdio.h>
+#include <stdlib.h>
+struct Block {
+    int blockid, size, allocated;
+    struct Block *prev, *next;
+};
+Block *head = NULL;
+Block* createBlock(int id, int size, int allocated) {
+    Block* newBlock = (Block*)malloc(sizeof(Block));
+    newBlock->blockid = id; newBlock->size = size; newBlock->allocated = allocated;
+    newBlock->prev = newBlock->next = NULL; return newBlock;
+}
+void allocateMemory(int id, int size) { /* Simulated allocation logic */ }
+void freeMemory(int id) { /* Simulated free logic */ }
+void garbageCollector() { /* Simulation only */ }
+void displayMemory() { /* Simulated display */ }
+int main() { return 0; }
+
+/*------------- Experiment 13: Binary Tree for Expression & Traversals -------------*/
+#include <stdio.h>
+#include <stdlib.h>
+struct Node { char data; struct Node *left, *right; };
+struct Stack { struct Node* node; struct Stack* next; } *top=NULL;
+void push(struct Node* node) { struct Stack* t=(struct Stack*)malloc(sizeof(struct Stack));t->node=node;t->next=top;top=t; }
+struct Node* pop() { if(top==NULL) return NULL; struct Node* n=top->node;struct Stack* t=top;top=top->next;free(t);return n; }
+struct Node* createNode(char val) { struct Node* n=(struct Node*)malloc(sizeof(struct Node)); n->data=val;n->left=n->right=NULL;return n; }
+struct Node* buildExprTree(char postfix[]) {
+    int i=0; while(postfix[i]) {
+        if(postfix[i]>='a' && postfix[i]<='z') push(createNode(postfix[i]));
+        else if(postfix[i]=='+'||postfix[i]=='-'||postfix[i]=='*'||postfix[i]=='/') {
+            struct Node *n=createNode(postfix[i]); n->right=pop(); n->left=pop(); push(n);
+        } i++;
+    } return pop();
+}
+void preorder(struct Node* root) { if(root) { printf("%c ",root->data); preorder(root->left); preorder(root->right); } }
+void inorder(struct Node* root) { if(root) { inorder(root->left); printf("%c ",root->data); inorder(root->right); } }
+void postorder(struct Node* root) { if(root) { postorder(root->left); postorder(root->right); printf("%c ",root->data); } }
+int main() {
+    char postfix[50]; printf("Enter postfix expression: "); scanf("%s", postfix);
+    struct Node* root=buildExprTree(postfix);
+    printf("Prefix: "); preorder(root); printf("\n");
+    printf("Infix: "); inorder(root); printf("\n");
+    printf("Postfix: "); postorder(root); printf("\n");
+    return 0;
+}
+
+/*------------- Experiment 14: Binary Search Tree Traversals -------------*/
+#include <stdio.h>
+#include <stdlib.h>
+struct Node { int data; struct Node *left, *right; };
+struct Node* insert(struct Node* root, int val) {
+    if(!root) { root=(struct Node*)malloc(sizeof(struct Node)); root->data=val; root->left=root->right=NULL; }
+    else if(val<root->data) root->left=insert(root->left,val);
+    else root->right=insert(root->right,val);
+    return root;
+}
+void inorder(struct Node* root) { if(root){inorder(root->left);printf("%d ",root->data);inorder(root->right);} }
+void preorder(struct Node* root){if(root){printf("%d ",root->data);preorder(root->left);preorder(root->right);} }
+void postorder(struct Node* root){if(root){postorder(root->left);postorder(root->right);printf("%d ",root->data);} }
+int main(){
+    struct Node *root=NULL; int n,val; printf("Enter number of nodes: "); scanf("%d",&n);
+    for(int i=0;i<n;i++){scanf("%d",&val);root=insert(root,val);}
+    printf("Inorder: ");inorder(root); printf("\n");
+    printf("Preorder: ");preorder(root); printf("\n");
+    printf("Postorder: ");postorder(root); printf("\n");
+    return 0;
+}
+
+/*------------- Experiment 15: Dictionary with BST -------------*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+struct Node { char word[50], meaning[100]; struct Node *left,*right; };
+struct Node* createNode(char word[],char meaning[]){
+    struct Node *newNode=(struct Node*)malloc(sizeof(struct Node));
+    strcpy(newNode->word,word); strcpy(newNode->meaning,meaning); newNode->left=NULL; newNode->right=NULL;
+    return newNode;
+}
+struct Node* insert(struct Node* root,char word[],char meaning[]){
+    if(!root) return createNode(word,meaning);
+    int cmp=strcmp(word,root->word);
+    if(cmp<0) root->left=insert(root->left,word,meaning);
+    else if(cmp>0) root->right=insert(root->right,word,meaning);
+    else printf("Word already exists.\n");
+    return root;
+}
+void search(struct Node* root,char word[]){
+    if(!root) { printf("Word not found!\n"); return; }
+    int cmp=strcmp(word,root->word); if(cmp==0) printf("Meaning: %s\n",root->meaning);
+    else if(cmp<0) search(root->left,word); else search(root->right,word);
+}
+void inorder(struct Node* root){
+    if(root){inorder(root->left); printf("%s: %s\n",root->word,root->meaning); inorder(root->right);}
+}
+int main(){
+    struct Node *root=NULL; int choice; char word[50],meaning[100];
+    do{
+        printf("1. Insert\n2. Search\n3. Display\n4. Exit\nEnter choice: "); scanf("%d",&choice);
+        switch(choice){
+            case 1: printf("Enter word: "); scanf("%s",word); printf("Enter meaning: "); scanf(" %[^\n]",meaning); root=insert(root,word,meaning); break;
+            case 2: printf("Enter word to search: "); scanf("%s",word); search(root,word); break;
+            case 3: inorder(root); break;
+        }
+    }while(choice!=4);
+    return 0;
+}
+
+/*------------- Experiment 16: BFS (Breadth First Search) -------------*/
+#include <stdio.h>
+int queue[100], front=-1, rear=-1, visited[100];
+void enqueue(int value){ if(rear==99)printf("Overflow"); else if(front==-1)front=0; queue[++rear]=value; }
+int dequeue(){ if(front==-1||front>rear) return -1; return queue[front++]; }
+void bfs(int adj[10][10], int start, int n){
+    enqueue(start); visited[start]=1; printf("BFS Traversal: ");
+    while(front<=rear) {
+        int curr=dequeue(); printf("%d ",curr);
+        for(int i=0;i<n;i++) if(adj[curr][i] && !visited[i]) { enqueue(i); visited[i]=1; }
+    }
+}
+int main(){
+    int n,adj[10][10],start;
+    printf("Enter number of vertices: ");scanf("%d",&n);
+    printf("Enter adjacency matrix:\n");for(int i=0;i<n;i++) for(int j=0;j<n;j++) scanf("%d",&adj[i][j]);
+    printf("Enter start vertex: ");scanf("%d",&start); bfs(adj,start,n); return 0;
+}
+
+/*------------- Experiment 17: DFS (Depth First Search) -------------*/
+#include <stdio.h>
+int visited[100];
+void dfs(int adj[10][10],int start,int n) {
+    printf("%d ",start); visited[start]=1;
+    for(int i=0;i<n;i++) if(adj[start][i] && !visited[i]) dfs(adj,i,n);
+}
+int main() {
+    int n,adj[10][10],start;
+    printf("Enter number of vertices: ");scanf("%d",&n);
+    printf("Enter adjacency matrix:\n");for(int i=0;i<n;i++) for(int j=0;j<n;j++) scanf("%d",&adj[i][j]);
+    printf("Enter start vertex: ");scanf("%d",&start);
+    printf("DFS Traversal: "); dfs(adj,start,n); return 0;
+}
+
+/*------------- Experiment 18: Shortest Distance from Landmine in Maze -------------*/
+#include <stdio.h>
+#define MAX 100
+#define INF 9999
+int dirRow[] = {-1,1,0,0};
+int dirCol[] = {0,0,-1,1};
+struct Node { int x,y; };
+struct Node queue[MAX*MAX]; int front=0, rear=-1;
+void enqueue(int x,int y) { queue[++rear].x=x; queue[rear].y=y; }
+struct Node dequeue() { return queue[front++]; }
+int isValid(int x,int y,int n,int m){return x>=0 && x<n && y>=0 && y<m;}
+int main(){
+    int maze[MAX][MAX], dist[MAX][MAX], n,m;
+    printf("Enter number of rows and columns: "); scanf("%d%d",&n,&m);
+    printf("Enter the maze (-1 for mine, 0 for path, 999 for wall):\n");
+    for(int i=0;i<n;i++) for(int j=0;j<m;j++) scanf("%d",&maze[i][j]);
+    for(int i=0;i<n;i++) for(int j=0;j<m;j++) dist[i][j]=INF;
+    for(int i=0;i<n;i++) for(int j=0;j<m;j++) if(maze[i][j]==-1) enqueue(i,j),dist[i][j]=0;
+    while(front<=rear){
+        struct Node temp=dequeue(); int x=temp.x, y=temp.y;
+        for(int k=0;k<4;k++){
+            int newX=x+dirRow[k], newY=y+dirCol[k];
+            if(isValid(newX,newY,n,m) && maze[newX][newY]==0 && dist[newX][newY]>dist[x][y]+1){
+                dist[newX][newY]=dist[x][y]+1; enqueue(newX,newY);
+            }
+        }
+    }
+    printf("Shortest distance from land mines:\n");
+    for(int i=0;i<n;i++){
+        for(int j=0;j<m;j++) {
+            if(maze[i][j]==999) printf(". ");
+            else if(dist[i][j]==INF) printf("INF ");
+            else printf("%d ",dist[i][j]);
+        }
+        printf("\n");
+    }
+    return 0;
+}
+
+/*------------- Experiment 19: Water Jug Problem BFS -------------*/
+#include <stdio.h>
+#define MAX_STATES 100
+typedef struct{int a,b,c;} State;
+struct Node { State state; int parent; } queue[MAX_STATES]; int visited[11][8][5],front=0,rear=0;
+int capacities[3]={10,7,4};
+void enqueue(State s,int parent) { queue[rear].state=s; queue[rear].parent=parent; rear++; }
+State pour(State s,int from,int to) {
+    int amt[3]={s.a,s.b,s.c},pourable=capacities[to]-amt[to]<amt[from]?capacities[to]-amt[to]:amt[from];
+    amt[from]-=pourable; amt[to]+=pourable;
+    State ns={amt[0],amt[1],amt[2]}; return ns;
+}
+int isGoal(State s) { return (s.b==2||s.c==2); }
+void printPath(int idx) {
+    if(queue[idx].parent==-1){printf("Start: (%d,%d,%d)\n",queue[idx].state.a,queue[idx].state.b,queue[idx].state.c);return;}
+    printPath(queue[idx].parent); printf("(%d,%d,%d)\n",queue[idx].state.a,queue[idx].state.b,queue[idx].state.c);
+}
+int main() {
+    State start={0,7,4}; enqueue(start,-1); visited[start.a][start.b][start.c]=1;
+    while(front<rear) {
+        struct Node curr=queue[front++];
+        State s=curr.state; if(isGoal(s)) { printPath(front-1); return 0; }
+        for(int from=0;from<3;from++) for(int to=0;to<3;to++) if(from!=to) {
+            State next=pour(s,from,to); if(!visited[next.a][next.b][next.c]) visited[next.a][next.b][next.c]=1; enqueue(next,front-1);
+        }
+    }
+    printf("No solution found.\n"); return 0;
+}
+
+/*------------- Experiment 20: Priority Queue (Linked List) -------------*/
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+struct Node { char name[100]; int priority; struct Node* next; };
+struct Node* front=NULL;
+struct Node* createNode(char name[],int priority) {
+    struct Node* temp=(struct Node*)malloc(sizeof(struct Node));
+    strcpy(temp->name,name); temp->priority=priority; temp->next=NULL;
+    return temp;
+}
+void enqueue(char name[],int priority) {
+    struct Node* newNode=createNode(name,priority);
+    if(front==NULL || priority>front->priority) {
+        newNode->next=front; front=newNode;
+    } else {
+        struct Node* temp=front;
+        while(temp->next!=NULL && temp->next->priority>=priority) temp=temp->next;
+        newNode->next=temp->next; temp->next=newNode;
+    }
+    printf("Customer %s added with priority %d\n",name,priority);
+}
+void dequeue() {
+    if(front==NULL) printf("No customers to serve.\n");
+    else { struct Node* temp=front; front=front->next; free(temp);}
+}
+void displayQueue() {
+    struct Node* temp=front;
+    if(temp==NULL) { printf("No customers in queue.\n"); return; }
+    while(temp!=NULL) { printf("%s (Priority: %d) -> ",temp->name,temp->priority); temp=temp->next; }
+    printf("NULL\n");
+}
+int main() {
+    int choice,priority; char name[100];
+    do {
+        printf("1. Add Customer\n2. Serve Customer\n3. Display Queue\n4. Exit\nEnter choice: ");
+        scanf("%d",&choice);
+        switch(choice) {
+            case 1: printf("Name: "); scanf("%s",name); printf("Priority: "); scanf("%d",&priority); enqueue(name,priority); displayQueue(); break;
+            case 2: dequeue(); displayQueue(); break;
+            case 3: displayQueue(); break;
+            case 4: break;
+        }
+    }while(choice!=4);
+    return 0;
+}
